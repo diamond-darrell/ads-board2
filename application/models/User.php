@@ -341,4 +341,70 @@ FROM users
         $password = password_hash($password, PASSWORD_DEFAULT);
         $this->db->update($this->table, ['password' => $password], ['id' => $id]);
     }
+
+    /**
+     * Checks if user exist
+     *
+     * @param $email
+     * @return bool
+     */
+    public function isUserExist($email)
+    {
+        if ($this->getBy('email', $email)) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Create or update restore info
+     *
+     * @param $email
+     * @param $newPassword
+     * @param $link
+     * @throws DatabaseErrorException
+     */
+    public function saveRestoreInfo($email, $newPassword, $link)
+    {
+        $userId = $this->db->query("SELECT id FROM users WHERE email='{$email}'")->fetch(PDO::FETCH_ASSOC)['id'];
+        $infoExist = $this->getRestoreInfoByUserId($userId);
+        try {
+            if ($infoExist) { // if info exist just update
+                $this->db->query("UPDATE restoreLinks SET link = '{$link}', newPassword = '{$newPassword}' WHERE userId='{$infoExist['userId']}'");
+            } else { // else create new row
+                $this->db->query("INSERT INTO restoreLinks (link, newPassword, userId)
+VALUES ('{$link}', '{$newPassword}', '{$userId}')");
+            }
+        } catch (PDOException $e) {
+            throw new DatabaseErrorException();
+        }
+    }
+    /**
+     * Delete restore info
+     *
+     * @param $id
+     */
+    public function deleteRestoreInfo($id)
+    {
+        $this->db->delete('restoreLinks', ['id' => $id]);
+    }
+    /**
+     * Retrieve restore info (id, userId, newPassword) by userId
+     *
+     * @param $userId
+     * @return array
+     */
+    public function getRestoreInfoByUserId($userId)
+    {
+        return $this->db->query("SELECT id, userId, newPassword FROM restoreLinks WHERE userId='{$userId}'")->fetch(PDO::FETCH_ASSOC);
+    }
+    /**
+     * Retrieve restore info (id, userId, newPassword) by link
+     *
+     * @param $link
+     * @return array
+     */
+    public function getRestoreInfoByLink($link)
+    {
+        return $this->db->query("SELECT id, userId, newPassword FROM restoreLinks WHERE link='{$link}'")->fetch(PDO::FETCH_ASSOC);
+    }
 }

@@ -23,7 +23,7 @@ class Config
      */
     public static function init($dir = null)
     {
-        $confDefault = Config::assembleConfig(self::$path . 'default/');
+        $confDefault = Config::assembleConfig(self::$path. 'default/');
 
         self::$conf = $confDefault;
 

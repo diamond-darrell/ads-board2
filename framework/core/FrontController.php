@@ -6,7 +6,7 @@ class FrontController
     public function __construct()
     {
         try {
-            Config::init(APP_ENV);
+            Config::init('dev');
             Dispatcher::start();
         } catch (PageNotFoundException $e) {
             $e->redirect();
